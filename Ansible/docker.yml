@@ -1,0 +1,30 @@
+---
+- name: Install docker on ubuntu server
+  hosts: ec2
+  user: ubuntu
+  sudo: yes
+  pre_tasks:
+  - name: install python
+    raw: sudo test -e /usr/bin/python || (sudo apt update && sudo apt install -y python-minimal)
+  tasks:
+  - name: install aptitude and update cache
+    apt: name=aptitude status=latest update_cache=yes force_apt_get=yes
+  - name: install required system packages
+    apt: name={{item}} status=latest update_cache=yes
+    loop: [ 'apt-transport-https','ca-certificates','curl','software-properties-common','python3-pip','virtualenv','python3-setuptools']
+  - name: Add Docker GPG apt Key
+    apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: presen
+  - name: add docker repository
+    apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+  - name: Install Docker Module for Python
+    pip:
+        name: docker
+  - name: Update apt and install docker-ce
+    apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
